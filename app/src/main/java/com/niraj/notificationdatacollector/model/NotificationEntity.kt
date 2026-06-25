@@ -1,6 +1,17 @@
 package com.niraj.notificationdatacollector.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "notifications")
 data class NotificationEntity(
+
+    // =========================
+    // Primary Key
+    // =========================
+
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
 
     // =========================
     // Time Information
@@ -117,5 +128,4 @@ data class NotificationEntity(
     val wasDismissed: Boolean = false,
 
     val notes: String = ""
-
 )

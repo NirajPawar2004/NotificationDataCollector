@@ -1,32 +1,47 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
+
     namespace = "com.niraj.notificationdatacollector"
 
     compileSdk = 37
 
     defaultConfig {
+
         applicationId = "com.niraj.notificationdatacollector"
+
         minSdk = 26
+
         targetSdk = 37
 
         versionCode = 1
+
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner =
+            "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+
         release {
             isMinifyEnabled = false
         }
     }
 
     compileOptions {
+
         sourceCompatibility = JavaVersion.VERSION_11
+
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }
 
@@ -37,8 +52,20 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.recyclerview)
+
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+
+    implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+
+    ksp(libs.room.compiler)
+
+    implementation(libs.androidx.work.runtime.ktx)
 
     testImplementation(libs.junit)
 

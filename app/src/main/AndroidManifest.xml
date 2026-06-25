@@ -1,21 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Notification Permission -->
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!-- Internet & Network -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-
-    <!-- Foreground Service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
-    <!-- Auto Start After Reboot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
 
     <application
+        android:name=".App"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -25,6 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NotificationDataCollector">
 
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -36,18 +31,77 @@
 
         </activity>
 
+        <!-- Dashboard -->
+        <activity
+            android:name=".ui.DashboardActivity"
+            android:exported="false" />
+
+        <!-- Notification History -->
+        <activity
+            android:name=".ui.NotificationHistoryActivity"
+            android:exported="false" />
+
+        <!-- Notification Details -->
+        <activity
+            android:name=".ui.NotificationDetailsActivity"
+            android:exported="false" />
+
+        <!-- Statistics -->
+        <activity
+            android:name=".ui.StatisticsActivity"
+            android:exported="false" />
+
+        <!-- Settings -->
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:exported="false" />
+
+        <!-- About -->
+        <activity
+            android:name=".ui.AboutActivity"
+            android:exported="false" />
+
+        <!-- CSV Export -->
+        <activity
+            android:name=".ui.CsvExportActivity"
+            android:exported="false" />
+
+        <!-- Notification Listener -->
         <service
-            android:name=".service.NotificationCaptureService"
-            android:enabled="true"
-            android:exported="true"
-            android:label="Notification Collector"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            android:name=".service.NotificationListenerService"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
 
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
 
         </service>
+
+        <!-- Boot Receiver -->
+        <receiver
+            android:name=".receiver.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+
+        </receiver>
+
+        <!-- Screen State Receiver -->
+        <receiver
+            android:name=".receiver.ScreenStateReceiver"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_ON" />
+                <action android:name="android.intent.action.SCREEN_OFF" />
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+
+        </receiver>
 
     </application>
 
