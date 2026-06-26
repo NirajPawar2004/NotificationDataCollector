@@ -1,9 +1,9 @@
 package com.niraj.notificationdatacollector.worker
 
+import android.content.Context
 import android.net.Uri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import android.content.Context
 import com.niraj.notificationdatacollector.data.DatabaseProvider
 import com.niraj.notificationdatacollector.data.NotificationRepository
 import com.niraj.notificationdatacollector.utils.ExportCsvHelper
@@ -14,35 +14,54 @@ import com.niraj.notificationdatacollector.utils.PreferencesManager
 class AutoExportWorker(
     appContext: Context,
     workerParams: WorkerParameters
-) : CoroutineWorker(appContext, workerParams) {
+) : CoroutineWorker(
+    appContext,
+    workerParams
+) {
 
     override suspend fun doWork(): Result {
 
         return try {
 
-            val repository = NotificationRepository(
-                DatabaseProvider
-                    .getDatabase(applicationContext)
-                    .notificationDao()
-            )
+            val repository =
+                NotificationRepository(
+
+                    DatabaseProvider
+                        .getDatabase(applicationContext)
+                        .notificationDao()
+
+                )
 
             val csvUri: Uri =
                 ExportCsvHelper(
+
                     applicationContext,
+
                     repository
+
                 ).export()
 
             val jsonUri: Uri =
                 JsonExportHelper(
+
                     applicationContext,
+
                     repository
+
                 ).export()
 
-            NotificationLogger.csvExport(csvUri.toString())
-            NotificationLogger.csvExport(jsonUri.toString())
+            NotificationLogger.csvExport(
+                csvUri.toString()
+            )
+
+            NotificationLogger.jsonExport(
+                jsonUri.toString()
+            )
 
             val preferences =
-                PreferencesManager(applicationContext)
+                PreferencesManager(
+                    applicationContext
+                )
 
             preferences.lastExportTime =
                 System.currentTimeMillis()
@@ -55,7 +74,7 @@ class AutoExportWorker(
         } catch (e: Exception) {
 
             NotificationLogger.error(
-                "Auto Export Failed",
+                "Automatic export failed",
                 e
             )
 

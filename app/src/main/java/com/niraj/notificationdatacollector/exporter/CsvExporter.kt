@@ -7,8 +7,10 @@ import java.io.File
 
 object CsvExporter {
 
-    private const val TAG = "NotificationCollector"
-    private const val FILE_NAME = "notifications.csv"
+    private const val TAG = "CsvExporter"
+
+    private const val FILE_NAME =
+        "notification_dataset_v3.csv"
 
     fun saveNotification(
         context: Context,
@@ -26,15 +28,18 @@ object CsvExporter {
 
                 file.createNewFile()
 
-                file.appendText(getHeader())
-
+                file.appendText(
+                    getHeader()
+                )
             }
 
-            file.appendText(getRow(entity))
+            file.appendText(
+                getRow(entity)
+            )
 
             Log.d(
                 TAG,
-                "CSV Saved : ${file.absolutePath}"
+                "Saved : ${file.absolutePath}"
             )
 
         } catch (e: Exception) {
@@ -44,134 +49,161 @@ object CsvExporter {
                 "CSV Export Failed",
                 e
             )
-
         }
-
     }
 
     private fun getHeader(): String {
 
         return listOf(
 
-            "timestampMillis",
-            "formattedTime",
-            "date",
-            "dayOfWeek",
-            "month",
-            "year",
-            "hour",
-            "minute",
-            "second",
+            "notificationId",
+
+            "notificationKey",
+
+            "userId",
 
             "appName",
-            "packageName",
-            "versionName",
-            "versionCode",
-            "isSystemApp",
 
-            "title",
-            "text",
-            "bigText",
-            "subText",
-            "conversationTitle",
-            "category",
-            "channelId",
-            "priority",
-            "visibility",
-            "isOngoing",
-            "isClearable",
-            "notificationNumber",
-            "postTime",
+            "packageName",
+
+            "notificationCategory",
+
+            "notificationTitle",
+
+            "notificationText",
+
+            "senderName",
+
+            "senderId",
+
+            "senderType",
+
+            "favoriteContact",
+
+            "notificationFrequency",
+
+            "timestamp",
+
+            "dayOfWeek",
+
+            "hourOfDay",
 
             "screenOn",
-            "screenOrientation",
-            "batteryLevel",
-            "charging",
-            "batterySaver",
-            "ringerMode",
-            "mediaVolume",
-            "notificationVolume",
-            "alarmVolume",
 
-            "internetAvailable",
-            "wifiConnected",
-            "mobileDataConnected",
-            "connectionType",
+            "phoneLocked",
+
+            "batteryLevel",
+
+            "charging",
+
+            "internetStatus",
+
+            "doNotDisturb",
+
+            "foregroundApp",
+
+            "userActivity",
+
+            "opened",
+
+            "dismissed",
+
+            "timeToOpen",
+
+            "responseTime",
 
             "priorityLabel",
-            "userAction",
-            "responseTime",
-            "wasOpened",
-            "wasDismissed",
-            "notes"
+
+            "priorityClass",
+
+            "predictionConfidence"
 
         ).joinToString(",") + "\n"
-
     }
 
-    private fun csv(value: Any?): String {
-        val text = value?.toString() ?: ""
-        return "\"" + text.replace("\"", "\"\"") + "\""
+    private fun csv(
+        value: Any?
+    ): String {
+
+        return "\"" +
+                (value?.toString()
+                    ?.replace("\"", "\"\"")
+                    ?: "") +
+                "\""
     }
 
-    private fun getRow(entity: NotificationEntity): String {
+    private fun getRow(
+        entity: NotificationEntity
+    ): String {
 
         return listOf(
 
-            entity.timestampMillis,
-            entity.formattedTime,
-            entity.date,
-            entity.dayOfWeek,
-            entity.month,
-            entity.year,
-            entity.hour,
-            entity.minute,
-            entity.second,
+            entity.notificationId,
+
+            entity.notificationKey,
+
+            entity.userId,
 
             entity.appName,
-            entity.packageName,
-            entity.versionName,
-            entity.versionCode,
-            entity.isSystemApp,
 
-            entity.title,
-            entity.text,
-            entity.bigText,
-            entity.subText,
-            entity.conversationTitle,
-            entity.category,
-            entity.channelId,
-            entity.priority,
-            entity.visibility,
-            entity.isOngoing,
-            entity.isClearable,
-            entity.notificationNumber,
-            entity.postTime,
+            entity.packageName,
+
+            entity.notificationCategory,
+
+            entity.notificationTitle,
+
+            entity.notificationText,
+
+            entity.senderName,
+
+            entity.senderId,
+
+            entity.senderType,
+
+            entity.favoriteContact,
+
+            entity.notificationFrequency,
+
+            entity.timestamp,
+
+            entity.dayOfWeek,
+
+            entity.hourOfDay,
 
             entity.screenOn,
-            entity.screenOrientation,
-            entity.batteryLevel,
-            entity.charging,
-            entity.batterySaver,
-            entity.ringerMode,
-            entity.mediaVolume,
-            entity.notificationVolume,
-            entity.alarmVolume,
 
-            entity.internetAvailable,
-            entity.wifiConnected,
-            entity.mobileDataConnected,
-            entity.connectionType,
+            entity.phoneLocked,
+
+            entity.batteryLevel,
+
+            entity.charging,
+
+            entity.internetStatus,
+
+            entity.doNotDisturb,
+
+            entity.foregroundApp,
+
+            entity.userActivity,
+
+            entity.opened,
+
+            entity.dismissed,
+
+            entity.timeToOpen,
+
+            entity.responseTime,
 
             entity.priorityLabel,
-            entity.userAction,
-            entity.responseTime,
-            entity.wasOpened,
-            entity.wasDismissed,
-            entity.notes
 
-        ).joinToString(",") { csv(it) } + "\n"
+            entity.priorityClass,
 
+            entity.predictionConfidence
+
+        ).joinToString(",") {
+
+            csv(it)
+
+        } + "\n"
     }
-
 }

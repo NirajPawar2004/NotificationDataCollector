@@ -1,6 +1,7 @@
 package com.niraj.notificationdatacollector.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -8,11 +9,18 @@ import com.niraj.notificationdatacollector.R
 import com.niraj.notificationdatacollector.data.DatabaseProvider
 import com.niraj.notificationdatacollector.data.NotificationRepository
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class NotificationDetailsActivity : AppCompatActivity() {
 
     companion object {
-        const val EXTRA_NOTIFICATION_ID = "notification_id"
+
+        private const val TAG = "NotificationDetails"
+
+        const val EXTRA_NOTIFICATION_ID =
+            "notification_id"
     }
 
     private lateinit var repository: NotificationRepository
@@ -29,56 +37,151 @@ class NotificationDetailsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_notification_details)
-
-        repository = NotificationRepository(
-            DatabaseProvider
-                .getDatabase(this)
-                .notificationDao()
+        setContentView(
+            R.layout.activity_notification_details
         )
 
-        txtApp = findViewById(R.id.txtApp)
-        txtTitle = findViewById(R.id.txtTitle)
-        txtText = findViewById(R.id.txtText)
-        txtCategory = findViewById(R.id.txtCategory)
-        txtPriority = findViewById(R.id.txtPriority)
-        txtTime = findViewById(R.id.txtTime)
-        txtPackage = findViewById(R.id.txtPackage)
-        txtDetails = findViewById(R.id.txtDetails)
+        repository =
+            NotificationRepository(
 
-        val id = intent.getLongExtra(EXTRA_NOTIFICATION_ID, -1L)
+                DatabaseProvider
+                    .getDatabase(this)
+                    .notificationDao()
 
-        if (id != -1L) {
-            loadNotification(id)
+            )
+
+        txtApp =
+            findViewById(R.id.txtApp)
+
+        txtTitle =
+            findViewById(R.id.txtTitle)
+
+        txtText =
+            findViewById(R.id.txtText)
+
+        txtCategory =
+            findViewById(R.id.txtCategory)
+
+        txtPriority =
+            findViewById(R.id.txtPriority)
+
+        txtTime =
+            findViewById(R.id.txtTime)
+
+        txtPackage =
+            findViewById(R.id.txtPackage)
+
+        txtDetails =
+            findViewById(R.id.txtDetails)
+
+        val notificationId =
+            intent.getLongExtra(
+                EXTRA_NOTIFICATION_ID,
+                -1L
+            )
+
+        if (notificationId != -1L) {
+
+            loadNotification(
+                notificationId
+            )
         }
     }
 
-    private fun loadNotification(id: Long) {
+    private fun loadNotification(
+        notificationId: Long
+    ) {
 
         lifecycleScope.launch {
 
-            val notification = repository.getById(id) ?: return@launch
+            try {
 
-            txtApp.text = notification.appName
-            txtTitle.text = notification.title
-            txtText.text = notification.text
-            txtCategory.text = notification.category
-            txtPriority.text = notification.priorityLabel
-            txtTime.text = notification.formattedTime
-            txtPackage.text = notification.packageName
+                val notification =
+                    repository.getById(
+                        notificationId
+                    ) ?: return@launch
 
-            txtDetails.text = buildString {
+                txtApp.text =
+                    notification.appName
 
-                appendLine("Version : ${notification.versionName}")
-                appendLine("Channel : ${notification.channelId}")
-                appendLine("Battery : ${notification.batteryLevel}%")
-                appendLine("Charging : ${notification.charging}")
-                appendLine("WiFi : ${notification.wifiConnected}")
-                appendLine("Mobile : ${notification.mobileDataConnected}")
-                appendLine("Connection : ${notification.connectionType}")
-                appendLine("Opened : ${notification.wasOpened}")
-                appendLine("Dismissed : ${notification.wasDismissed}")
-                appendLine("Response Time : ${notification.responseTime} ms")
+                txtTitle.text =
+                    notification.notificationTitle
+
+                txtText.text =
+                    notification.notificationText
+
+                txtCategory.text =
+                    notification.notificationCategory
+
+                txtPriority.text =
+                    notification.priorityLabel
+
+                txtPackage.text =
+                    notification.packageName
+
+                txtTime.text =
+                    SimpleDateFormat(
+                        "dd MMM yyyy  HH:mm:ss",
+                        Locale.getDefault()
+                    ).format(
+                        Date(
+                            notification.timestamp
+                        )
+                    )
+
+                txtDetails.text =
+                    buildString {
+
+                        appendLine("Notification ID : ${notification.notificationId}")
+
+                        appendLine("Notification Key : ${notification.notificationKey}")
+
+                        appendLine("Sender : ${notification.senderName}")
+
+                        appendLine("Sender Type : ${notification.senderType}")
+
+                        appendLine("Favorite Contact : ${notification.favoriteContact}")
+
+                        appendLine("Notification Frequency : ${notification.notificationFrequency}")
+
+                        appendLine("Screen On : ${notification.screenOn}")
+
+                        appendLine("Phone Locked : ${notification.phoneLocked}")
+
+                        appendLine("Battery Level : ${notification.batteryLevel}%")
+
+                        appendLine("Charging : ${notification.charging}")
+
+                        appendLine("Internet : ${notification.internetStatus}")
+
+                        appendLine("Do Not Disturb : ${notification.doNotDisturb}")
+
+                        appendLine("Foreground App : ${notification.foregroundApp}")
+
+                        appendLine("User Activity : ${notification.userActivity}")
+
+                        appendLine("Opened : ${notification.opened}")
+
+                        appendLine("Dismissed : ${notification.dismissed}")
+
+                        appendLine("Time To Open : ${notification.timeToOpen} ms")
+
+                        appendLine("Response Time : ${notification.responseTime} ms")
+
+                        appendLine("Priority Label : ${notification.priorityLabel}")
+
+                        appendLine("Priority Class : ${notification.priorityClass}")
+
+                        appendLine("Prediction Confidence : ${notification.predictionConfidence}")
+                    }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    TAG,
+                    "Failed to load notification",
+                    e
+                )
             }
         }
     }

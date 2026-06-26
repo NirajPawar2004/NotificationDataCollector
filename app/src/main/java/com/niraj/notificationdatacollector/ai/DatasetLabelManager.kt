@@ -12,52 +12,98 @@ object DatasetLabelManager {
         notification: NotificationEntity
     ): String {
 
-        // User interacted quickly
-        if (notification.wasOpened &&
-            notification.responseTime in 1..30000L
+        // =====================================
+        // Favorite Contact
+        // =====================================
+
+        if (notification.favoriteContact) {
+
+            return HIGH
+        }
+
+        // =====================================
+        // Family / Emergency
+        // =====================================
+
+        if (
+
+            notification.senderType == "FAMILY" ||
+
+            notification.senderType == "EMERGENCY"
+
         ) {
+
             return HIGH
         }
 
-        // Calls
-        if (notification.category == "call") {
-            return HIGH
-        }
+        // =====================================
+        // User Opened Quickly
+        // =====================================
 
-        // Messages
-        if (notification.category == "msg" ||
-            notification.category == "message"
+        if (
+
+            notification.opened &&
+
+            notification.responseTime in 1..30_000L
+
         ) {
+
             return HIGH
         }
 
-        // Alarm
-        if (notification.category == "alarm") {
-            return HIGH
+        // =====================================
+        // Important Categories
+        // =====================================
+
+        when (
+            notification.notificationCategory.lowercase()
+        ) {
+
+            "call",
+            "msg",
+            "message",
+            "alarm",
+            "event" -> return HIGH
+
+            "email" -> return MEDIUM
         }
 
-        // Calendar
-        if (notification.category == "event") {
-            return HIGH
-        }
+        // =====================================
+        // Promotional Notification
+        // =====================================
 
-        // Email
-        if (notification.category == "email") {
-            return MEDIUM
-        }
+        if (
+            containsPromotion(notification)
+        ) {
 
-        // Downloads
-        if (notification.category == "progress") {
             return LOW
         }
 
-        // Promotional
-        if (containsPromotion(notification)) {
+        // =====================================
+        // Frequently Ignored
+        // =====================================
+
+        if (
+
+            notification.dismissed &&
+
+            notification.notificationFrequency > 20
+
+        ) {
+
             return LOW
         }
 
-        // Social media
-        if (isSocial(notification.packageName)) {
+        // =====================================
+        // Social Apps
+        // =====================================
+
+        if (
+            isSocial(
+                notification.packageName
+            )
+        ) {
+
             return MEDIUM
         }
 
@@ -68,23 +114,42 @@ object DatasetLabelManager {
         notification: NotificationEntity
     ): Boolean {
 
-        val text =
-            "${notification.title} ${notification.text}"
-                .lowercase()
+        val text = (
+
+                notification.notificationTitle +
+
+                        " " +
+
+                        notification.notificationText
+
+                ).lowercase()
 
         val keywords = listOf(
+
             "offer",
+
             "sale",
+
             "discount",
+
             "coupon",
+
             "cashback",
+
             "deal",
+
             "buy now",
-            "limited time"
+
+            "limited time",
+
+            "promo"
+
         )
 
         return keywords.any {
+
             text.contains(it)
+
         }
     }
 
@@ -93,19 +158,33 @@ object DatasetLabelManager {
     ): Boolean {
 
         val socialApps = listOf(
+
             "whatsapp",
+
             "instagram",
+
             "facebook",
+
             "telegram",
-            "snapchat",
-            "messenger",
+
             "discord",
+
+            "snapchat",
+
+            "messenger",
+
             "twitter",
+
             "x"
+
         )
 
         return socialApps.any {
-            packageName.lowercase().contains(it)
+
+            packageName
+                .lowercase()
+                .contains(it)
+
         }
     }
 
@@ -119,7 +198,9 @@ object DatasetLabelManager {
 
             MEDIUM -> 2
 
-            else -> 1
+            LOW -> 1
+
+            else -> 0
         }
     }
 }

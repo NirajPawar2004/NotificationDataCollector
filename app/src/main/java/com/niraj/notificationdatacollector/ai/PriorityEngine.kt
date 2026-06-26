@@ -13,80 +13,90 @@ object PriorityEngine {
 
         var score = 0
 
-        // -----------------------------------
-        // Category
-        // -----------------------------------
+        // =====================================
+        // Favorite Contact
+        // =====================================
 
-        when (notification.category?.lowercase()) {
+        if (notification.favoriteContact)
+            score += 35
 
-            "call" -> score += 35
+        // =====================================
+        // Sender Type
+        // =====================================
 
-            "message" -> score += 30
+        when (notification.senderType.uppercase()) {
 
-            "msg" -> score += 30
+            "FAMILY" -> score += 30
+
+            "EMERGENCY" -> score += 35
+
+            "WORK" -> score += 20
+
+            "FRIEND" -> score += 15
+        }
+
+        // =====================================
+        // Notification Category
+        // =====================================
+
+        when (
+            notification.notificationCategory.lowercase()
+        ) {
+
+            "call" -> score += 30
+
+            "message",
+            "msg" -> score += 28
 
             "alarm" -> score += 30
 
             "event" -> score += 25
 
-            "email" -> score += 18
+            "email" -> score += 15
 
-            "reminder" -> score += 22
-
-            "progress" -> score += 3
+            "reminder" -> score += 20
         }
 
-        // -----------------------------------
+        // =====================================
         // User Behaviour
-        // -----------------------------------
+        // =====================================
 
-        if (notification.wasOpened)
+        if (notification.opened)
             score += 15
 
-        if (notification.wasDismissed)
-            score -= 8
+        if (notification.dismissed)
+            score -= 10
 
-        if (
-            notification.responseTime in 1..30000
-        )
+        if (notification.responseTime in 1..30_000L)
             score += 10
 
-        // -----------------------------------
-        // Screen State
-        // -----------------------------------
+        // =====================================
+        // Device Context
+        // =====================================
 
         if (!notification.screenOn)
             score += 5
 
-        // -----------------------------------
-        // Battery
-        // -----------------------------------
+        if (notification.phoneLocked)
+            score += 5
 
         if (notification.batteryLevel < 20)
             score -= 3
 
-        if (notification.batterySaver)
-            score -= 2
-
-        // -----------------------------------
-        // Charging
-        // -----------------------------------
-
         if (notification.charging)
-            score += 1
-
-        // -----------------------------------
-        // Internet
-        // -----------------------------------
-
-        if (notification.internetAvailable)
             score += 2
 
-        // -----------------------------------
-        // Time
-        // -----------------------------------
+        if (notification.internetStatus)
+            score += 2
 
-        when (notification.hour) {
+        if (notification.doNotDisturb)
+            score += 10
+
+        // =====================================
+        // Time
+        // =====================================
+
+        when (notification.hourOfDay) {
 
             in 7..10 -> score += 3
 
@@ -97,76 +107,46 @@ object PriorityEngine {
             else -> score -= 2
         }
 
-        // -----------------------------------
-        // Priority from Android
-        // -----------------------------------
-
-        score += when (notification.priority) {
-
-            2 -> 8
-
-            1 -> 5
-
-            0 -> 2
-
-            -1 -> -2
-
-            -2 -> -5
-
-            else -> 0
-        }
-
-        // -----------------------------------
-        // Ongoing
-        // -----------------------------------
-
-        if (notification.isOngoing)
-            score += 5
-
-        // -----------------------------------
-        // System App
-        // -----------------------------------
-
-        if (notification.isSystemApp)
-            score += 2
-
-        // -----------------------------------
-        // Text Length
-        // -----------------------------------
-
-        val length =
-            (notification.title ?: "").length +
-                    (notification.text ?: "").length
+        // =====================================
+        // Notification Frequency
+        // =====================================
 
         when {
 
-            length > 120 -> score += 4
+            notification.notificationFrequency > 30 ->
+                score -= 15
 
-            length > 50 -> score += 2
+            notification.notificationFrequency > 15 ->
+                score -= 8
         }
 
-        // -----------------------------------
+        // =====================================
+        // Foreground App
+        // =====================================
+
+        if (
+            notification.foregroundApp.equals(
+                notification.packageName,
+                ignoreCase = true
+            )
+        ) {
+            score += 8
+        }
+
+        // =====================================
         // Messaging Apps
-        // -----------------------------------
+        // =====================================
 
         if (isMessaging(notification.packageName))
-            score += 15
+            score += 10
 
-        // -----------------------------------
-        // Email Apps
-        // -----------------------------------
-
-        if (isEmail(notification.packageName))
-            score += 8
-
-        // -----------------------------------
-        // Promotional
-        // -----------------------------------
+        // =====================================
+        // Promotional Detection
+        // =====================================
 
         if (isPromotion(notification))
             score -= 20
 
-        // Clamp
         return score.coerceIn(0, 100)
     }
 
@@ -175,32 +155,22 @@ object PriorityEngine {
     ): Boolean {
 
         val apps = listOf(
+
             "whatsapp",
             "telegram",
             "signal",
             "messenger",
             "discord",
             "messages"
+
         )
 
         return apps.any {
-            packageName.lowercase().contains(it)
-        }
-    }
 
-    private fun isEmail(
-        packageName: String
-    ): Boolean {
+            packageName
+                .lowercase()
+                .contains(it)
 
-        val apps = listOf(
-            "gmail",
-            "outlook",
-            "yahoo",
-            "email"
-        )
-
-        return apps.any {
-            packageName.lowercase().contains(it)
         }
     }
 
@@ -208,11 +178,18 @@ object PriorityEngine {
         notification: NotificationEntity
     ): Boolean {
 
-        val text =
-            "${notification.title} ${notification.text}"
-                .lowercase()
+        val text = (
+
+                notification.notificationTitle +
+
+                        " " +
+
+                        notification.notificationText
+
+                ).lowercase()
 
         val words = listOf(
+
             "sale",
             "offer",
             "discount",
@@ -220,11 +197,15 @@ object PriorityEngine {
             "cashback",
             "deal",
             "buy now",
-            "limited"
+            "limited",
+            "promo"
+
         )
 
         return words.any {
+
             text.contains(it)
+
         }
     }
 }

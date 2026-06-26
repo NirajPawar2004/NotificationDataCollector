@@ -22,6 +22,10 @@ import java.util.Locale
 
 class DashboardActivity : AppCompatActivity() {
 
+    companion object {
+        private const val TAG = "Dashboard"
+    }
+
     private lateinit var repository: NotificationRepository
     private lateinit var preferences: PreferencesManager
 
@@ -64,7 +68,7 @@ class DashboardActivity : AppCompatActivity() {
 
                 try {
 
-                    Log.d("EXPORT", "CSV Export Started")
+                    Log.d(TAG, "CSV Export Started")
 
                     val uri: Uri =
                         ExportCsvHelper(
@@ -72,14 +76,14 @@ class DashboardActivity : AppCompatActivity() {
                             repository
                         ).export()
 
-                    Log.d("EXPORT", "CSV Export Success : $uri")
-
                     preferences.lastExportTime =
                         System.currentTimeMillis()
 
+                    Log.d(TAG, "CSV Exported : $uri")
+
                     Toast.makeText(
                         this@DashboardActivity,
-                        "CSV exported successfully.\nSaved in Downloads/NotificationDataset",
+                        "CSV exported successfully.",
                         Toast.LENGTH_LONG
                     ).show()
 
@@ -87,7 +91,7 @@ class DashboardActivity : AppCompatActivity() {
 
                 } catch (e: Exception) {
 
-                    Log.e("EXPORT", "CSV Export Failed", e)
+                    Log.e(TAG, "CSV Export Failed", e)
 
                     Toast.makeText(
                         this@DashboardActivity,
@@ -104,7 +108,7 @@ class DashboardActivity : AppCompatActivity() {
 
                 try {
 
-                    Log.d("EXPORT", "JSON Export Started")
+                    Log.d(TAG, "JSON Export Started")
 
                     val uri: Uri =
                         JsonExportHelper(
@@ -112,14 +116,14 @@ class DashboardActivity : AppCompatActivity() {
                             repository
                         ).export()
 
-                    Log.d("EXPORT", "JSON Export Success : $uri")
-
                     preferences.lastExportTime =
                         System.currentTimeMillis()
 
+                    Log.d(TAG, "JSON Exported : $uri")
+
                     Toast.makeText(
                         this@DashboardActivity,
-                        "JSON exported successfully.\nSaved in Downloads/NotificationDataset",
+                        "JSON exported successfully.",
                         Toast.LENGTH_LONG
                     ).show()
 
@@ -127,7 +131,7 @@ class DashboardActivity : AppCompatActivity() {
 
                 } catch (e: Exception) {
 
-                    Log.e("EXPORT", "JSON Export Failed", e)
+                    Log.e(TAG, "JSON Export Failed", e)
 
                     Toast.makeText(
                         this@DashboardActivity,
@@ -141,10 +145,12 @@ class DashboardActivity : AppCompatActivity() {
         btnHistory.setOnClickListener {
 
             startActivity(
+
                 Intent(
                     this,
                     NotificationHistoryActivity::class.java
                 )
+
             )
         }
     }
@@ -153,31 +159,44 @@ class DashboardActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
 
-            txtTotal.text =
-                repository.getCount().toString()
+            try {
 
-            txtApps.text =
-                repository.getUniqueApps().toString()
+                txtTotal.text =
+                    repository.getCount().toString()
 
-            txtToday.text =
-                repository.getTodayCount(
-                    SimpleDateFormat(
-                        "yyyy-MM-dd",
-                        Locale.getDefault()
-                    ).format(Date())
-                ).toString()
+                txtApps.text =
+                    repository.getUniqueApps().toString()
 
-            txtLastExport.text =
-                if (preferences.lastExportTime == 0L) {
-                    "Never"
-                } else {
-                    SimpleDateFormat(
-                        "yyyy-MM-dd HH:mm:ss",
-                        Locale.getDefault()
-                    ).format(
-                        Date(preferences.lastExportTime)
-                    )
-                }
+                txtToday.text =
+                    repository.getTodayCount(
+                        System.currentTimeMillis()
+                    ).toString()
+
+                txtLastExport.text =
+                    if (preferences.lastExportTime == 0L) {
+
+                        "Never"
+
+                    } else {
+
+                        SimpleDateFormat(
+                            "dd MMM yyyy  HH:mm:ss",
+                            Locale.getDefault()
+                        ).format(
+                            Date(
+                                preferences.lastExportTime
+                            )
+                        )
+                    }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    TAG,
+                    "Statistics Load Failed",
+                    e
+                )
+            }
         }
     }
 }

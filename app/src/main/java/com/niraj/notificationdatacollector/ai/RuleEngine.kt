@@ -14,34 +14,61 @@ object RuleEngine {
         notification: NotificationEntity
     ): Priority {
 
-        val score =
-            PriorityEngine.calculatePriority(notification)
+        // ==========================================
+        // Absolute High Priority Rules
+        // ==========================================
 
-        // Emergency / Critical
+        if (notification.favoriteContact)
+            return Priority.HIGH
+
+        if (
+            notification.senderType.equals(
+                "FAMILY",
+                true
+            )
+        ) {
+            return Priority.HIGH
+        }
+
+        if (
+            notification.senderType.equals(
+                "EMERGENCY",
+                true
+            )
+        ) {
+            return Priority.HIGH
+        }
+
         if (isEmergency(notification))
             return Priority.HIGH
 
-        // Calls
-        if (notification.category.equals("call", true))
-            return Priority.HIGH
+        when (
+            notification.notificationCategory.lowercase()
+        ) {
 
-        // Messages
-        if (notification.category.equals("message", true))
-            return Priority.HIGH
+            "call",
+            "message",
+            "msg",
+            "alarm",
+            "event" -> return Priority.HIGH
+        }
 
-        // Alarm
-        if (notification.category.equals("alarm", true))
+        if (
+            notification.opened &&
+            notification.responseTime in 1..30_000L
+        ) {
             return Priority.HIGH
+        }
 
-        // Calendar
-        if (notification.category.equals("event", true))
-            return Priority.HIGH
+        // ==========================================
+        // Score Based Decision
+        // ==========================================
 
-        // Frequently opened
-        if (notification.wasOpened)
-            return Priority.HIGH
+        val score =
+            PriorityEngine.calculatePriority(
+                notification
+            )
 
-        // Score based decision
         return when {
 
             score >= 70 ->
@@ -59,21 +86,24 @@ object RuleEngine {
         notification: NotificationEntity
     ): Boolean {
 
-        return evaluate(notification) == Priority.HIGH
+        return evaluate(notification) ==
+                Priority.HIGH
     }
 
     fun shouldDelay(
         notification: NotificationEntity
     ): Boolean {
 
-        return evaluate(notification) == Priority.MEDIUM
+        return evaluate(notification) ==
+                Priority.MEDIUM
     }
 
     fun shouldSilence(
         notification: NotificationEntity
     ): Boolean {
 
-        return evaluate(notification) == Priority.LOW
+        return evaluate(notification) ==
+                Priority.LOW
     }
 
     private fun isEmergency(
@@ -81,9 +111,13 @@ object RuleEngine {
     ): Boolean {
 
         val text = (
-                (notification.title ?: "") +
+
+                notification.notificationTitle +
+
                         " " +
-                        (notification.text ?: "")
+
+                        notification.notificationText
+
                 ).lowercase()
 
         val keywords = listOf(
@@ -93,8 +127,8 @@ object RuleEngine {
             "911",
             "ambulance",
             "hospital",
-            "accident",
             "critical",
+            "accident",
             "fire",
             "police",
             "help",
@@ -106,7 +140,9 @@ object RuleEngine {
         )
 
         return keywords.any {
+
             text.contains(it)
+
         }
     }
 
@@ -114,7 +150,11 @@ object RuleEngine {
         notification: NotificationEntity
     ): String {
 
-        return when (evaluate(notification)) {
+        return when (
+
+            evaluate(notification)
+
+        ) {
 
             Priority.HIGH -> "HIGH"
 

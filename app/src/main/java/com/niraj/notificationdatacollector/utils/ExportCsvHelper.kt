@@ -9,28 +9,41 @@ import com.niraj.notificationdatacollector.data.NotificationRepository
 import java.io.OutputStreamWriter
 
 class ExportCsvHelper(
+
     private val context: Context,
+
     private val repository: NotificationRepository
+
 ) {
 
     suspend fun export(): Uri {
 
-        val notifications = repository.getAll()
+        val notifications =
+            repository.getAll()
 
-        val resolver = context.contentResolver
+        val resolver =
+            context.contentResolver
 
-        val fileName = "notifications_dataset.csv"
+        val fileName =
+            "notification_dataset_v3.csv"
 
-        // Delete previous export if it exists
+        // Delete old export
+
         resolver.query(
+
             MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+
             arrayOf(
                 MediaStore.MediaColumns._ID,
                 MediaStore.MediaColumns.DISPLAY_NAME
             ),
+
             "${MediaStore.MediaColumns.DISPLAY_NAME}=?",
+
             arrayOf(fileName),
+
             null
+
         )?.use { cursor ->
 
             val idIndex =
@@ -40,56 +53,117 @@ class ExportCsvHelper(
 
             while (cursor.moveToNext()) {
 
-                val id = cursor.getLong(idIndex)
+                val id =
+                    cursor.getLong(idIndex)
 
                 resolver.delete(
+
                     Uri.withAppendedPath(
                         MediaStore.Downloads.EXTERNAL_CONTENT_URI,
                         id.toString()
                     ),
+
                     null,
+
                     null
+
                 )
             }
         }
 
-        val values = ContentValues().apply {
+        val values =
+            ContentValues().apply {
 
-            put(
-                MediaStore.MediaColumns.DISPLAY_NAME,
-                fileName
+                put(
+                    MediaStore.MediaColumns.DISPLAY_NAME,
+                    fileName
+                )
+
+                put(
+                    MediaStore.MediaColumns.MIME_TYPE,
+                    "text/csv"
+                )
+
+                put(
+                    MediaStore.MediaColumns.RELATIVE_PATH,
+                    Environment.DIRECTORY_DOWNLOADS +
+                            "/NotificationDataset"
+                )
+            }
+
+        val uri =
+            resolver.insert(
+
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+
+                values
+
+            ) ?: throw Exception(
+                "Unable to create CSV."
             )
 
-            put(
-                MediaStore.MediaColumns.MIME_TYPE,
-                "text/csv"
-            )
+        resolver.openOutputStream(uri)?.use { stream ->
 
-            put(
-                MediaStore.MediaColumns.RELATIVE_PATH,
-                Environment.DIRECTORY_DOWNLOADS + "/NotificationDataset"
-            )
-        }
-
-        val uri = resolver.insert(
-            MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-            values
-        ) ?: throw Exception("Unable to create CSV file.")
-
-        resolver.openOutputStream(uri)?.use { outputStream ->
-
-            val writer = OutputStreamWriter(outputStream)
+            val writer =
+                OutputStreamWriter(stream)
 
             writer.appendLine(
-                "id,timestampMillis,formattedTime,date,dayOfWeek,month,year,hour,minute,second," +
-                        "appName,packageName,versionName,versionCode,isSystemApp," +
-                        "title,text,bigText,subText,conversationTitle," +
-                        "category,channelId,priority,visibility,isOngoing,isClearable," +
-                        "notificationNumber,postTime," +
-                        "screenOn,screenOrientation,batteryLevel,charging,batterySaver," +
-                        "ringerMode,mediaVolume,notificationVolume,alarmVolume," +
-                        "internetAvailable,wifiConnected,mobileDataConnected,connectionType," +
-                        "priorityLabel,userAction,responseTime,wasOpened,wasDismissed,notes"
+
+                listOf(
+
+                    "notificationId",
+                    "notificationKey",
+                    "userId",
+
+                    "appName",
+                    "packageName",
+
+                    "notificationCategory",
+                    "notificationTitle",
+                    "notificationText",
+
+                    "senderName",
+                    "senderId",
+                    "senderType",
+
+                    "favoriteContact",
+
+                    "notificationFrequency",
+
+                    "timestamp",
+                    "dayOfWeek",
+                    "hourOfDay",
+
+                    "screenOn",
+                    "phoneLocked",
+
+                    "batteryLevel",
+                    "charging",
+
+                    "internetStatus",
+
+                    "doNotDisturb",
+
+                    "foregroundApp",
+
+                    "userActivity",
+
+                    "opened",
+
+                    "dismissed",
+
+                    "timeToOpen",
+
+                    "responseTime",
+
+                    "priorityLabel",
+
+                    "priorityClass",
+
+                    "predictionConfidence"
+
+                ).joinToString(",")
+
             )
 
             notifications.forEach { n ->
@@ -98,71 +172,67 @@ class ExportCsvHelper(
 
                     listOf(
 
-                        n.id,
-                        n.timestampMillis,
+                        n.notificationId,
 
-                        csv(n.formattedTime),
-                        csv(n.date),
-                        csv(n.dayOfWeek),
-                        csv(n.month),
+                        csv(n.notificationKey),
 
-                        n.year,
-                        n.hour,
-                        n.minute,
-                        n.second,
+                        csv(n.userId),
 
                         csv(n.appName),
+
                         csv(n.packageName),
-                        csv(n.versionName),
 
-                        n.versionCode,
-                        n.isSystemApp,
+                        csv(n.notificationCategory),
 
-                        csv(n.title),
-                        csv(n.text),
-                        csv(n.bigText),
-                        csv(n.subText),
-                        csv(n.conversationTitle),
+                        csv(n.notificationTitle),
 
-                        csv(n.category),
-                        csv(n.channelId),
+                        csv(n.notificationText),
 
-                        n.priority,
-                        n.visibility,
+                        csv(n.senderName),
 
-                        n.isOngoing,
-                        n.isClearable,
+                        csv(n.senderId),
 
-                        n.notificationNumber,
-                        n.postTime,
+                        csv(n.senderType),
+
+                        n.favoriteContact,
+
+                        n.notificationFrequency,
+
+                        n.timestamp,
+
+                        csv(n.dayOfWeek),
+
+                        n.hourOfDay,
 
                         n.screenOn,
-                        csv(n.screenOrientation),
+
+                        n.phoneLocked,
 
                         n.batteryLevel,
+
                         n.charging,
-                        n.batterySaver,
 
-                        csv(n.ringerMode),
+                        n.internetStatus,
 
-                        n.mediaVolume,
-                        n.notificationVolume,
-                        n.alarmVolume,
+                        n.doNotDisturb,
 
-                        n.internetAvailable,
-                        n.wifiConnected,
-                        n.mobileDataConnected,
+                        csv(n.foregroundApp),
 
-                        csv(n.connectionType),
+                        csv(n.userActivity),
 
-                        csv(n.priorityLabel),
-                        csv(n.userAction),
+                        n.opened,
+
+                        n.dismissed,
+
+                        n.timeToOpen,
 
                         n.responseTime,
-                        n.wasOpened,
-                        n.wasDismissed,
 
-                        csv(n.notes)
+                        csv(n.priorityLabel),
+
+                        n.priorityClass,
+
+                        n.predictionConfidence
 
                     ).joinToString(",")
 
@@ -170,16 +240,19 @@ class ExportCsvHelper(
             }
 
             writer.flush()
-            writer.close()
         }
 
         return uri
     }
 
-    private fun csv(value: Any?): String {
+    private fun csv(
+        value: Any?
+    ): String {
 
         return "\"" +
-                (value?.toString()?.replace("\"", "\"\"") ?: "") +
+                (value?.toString()
+                    ?.replace("\"", "\"\"")
+                    ?: "") +
                 "\""
     }
 }

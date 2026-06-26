@@ -3,7 +3,10 @@ package com.niraj.notificationdatacollector.service
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import com.niraj.notificationdatacollector.behavior.AIBehaviorEngine
+import com.niraj.notificationdatacollector.behavior.NotificationSession
 import com.niraj.notificationdatacollector.collector.NotificationCollector
+import com.niraj.notificationdatacollector.data.ContactProfileRepository
 import com.niraj.notificationdatacollector.data.DatabaseProvider
 import com.niraj.notificationdatacollector.data.NotificationRepository
 import kotlinx.coroutines.CoroutineScope
@@ -14,20 +17,27 @@ import kotlinx.coroutines.launch
 class NotificationListenerService : NotificationListenerService() {
 
     companion object {
-        private const val TAG = "Collector"
+        private const val TAG = "NotificationCollector"
     }
 
     private val serviceScope =
-        CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        CoroutineScope(
+            SupervisorJob() + Dispatchers.IO
+        )
 
-    private val repository by lazy {
+    private val database by lazy {
+        DatabaseProvider.getDatabase(applicationContext)
+    }
 
-        Log.d(TAG, "Initializing Repository")
-
+    private val notificationRepository by lazy {
         NotificationRepository(
-            DatabaseProvider
-                .getDatabase(applicationContext)
-                .notificationDao()
+            database.notificationDao()
+        )
+    }
+
+    private val contactRepository by lazy {
+        ContactProfileRepository(
+            database.contactProfileDao()
         )
     }
 
@@ -45,36 +55,46 @@ class NotificationListenerService : NotificationListenerService() {
         sbn: StatusBarNotification
     ) {
 
-        Log.d(TAG, "===================================")
-        Log.d(TAG, "Notification Received")
-        Log.d(TAG, "Package : ${sbn.packageName}")
-        Log.d(TAG, "Post Time : ${sbn.postTime}")
-
         serviceScope.launch {
 
             try {
 
-                Log.d(TAG, "Collecting notification...")
+                val entity =
+                    NotificationCollector.collect(
+                        context = applicationContext,
+                        sbn = sbn,
+                        contactRepository = contactRepository
+                    )
 
-                val entity = NotificationCollector.collect(
-                    applicationContext,
-                    sbn
+                notificationRepository.insert(entity)
+
+                AIBehaviorEngine.notificationPosted(
+
+                    NotificationSession(
+
+                        notificationKey = sbn.key,
+
+                        packageName = sbn.packageName,
+
+                        senderName = entity.senderName,
+
+                        postedTime = System.currentTimeMillis()
+
+                    )
                 )
 
-                Log.d(TAG, "Collection Successful")
-                Log.d(TAG, "App Name : ${entity.appName}")
-                Log.d(TAG, "Title : ${entity.title}")
-                Log.d(TAG, "Saving into Room Database...")
-
-                repository.insert(entity)
-
-                Log.d(TAG, "Database Insert Successful")
-                Log.d(TAG, "===================================")
+                Log.d(
+                    TAG,
+                    "Notification Saved : ${entity.appName}"
+                )
 
             } catch (e: Exception) {
 
-                Log.e(TAG, "Database Insert Failed", e)
-
+                Log.e(
+                    TAG,
+                    "Insert Failed",
+                    e
+                )
             }
         }
     }
@@ -83,7 +103,14 @@ class NotificationListenerService : NotificationListenerService() {
         sbn: StatusBarNotification
     ) {
 
-        Log.d(TAG, "Notification Removed : ${sbn.packageName}")
+        AIBehaviorEngine.notificationRemoved(
+            sbn.key
+        )
+
+        Log.d(
+            TAG,
+            "Notification Removed : ${sbn.packageName}"
+        )
 
         super.onNotificationRemoved(sbn)
     }
@@ -95,6 +122,9 @@ class NotificationListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        AIBehaviorEngine.clearAll()
+
         Log.d(TAG, "Service Destroyed")
     }
 }

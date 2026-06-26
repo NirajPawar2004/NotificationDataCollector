@@ -5,103 +5,117 @@ import android.os.Build
 
 object NotificationUtils {
 
-    fun getTitle(notification: Notification): String {
+    fun getTitle(
+        notification: Notification
+    ): String {
+
         return notification.extras
             ?.getCharSequence(Notification.EXTRA_TITLE)
             ?.toString()
+            ?.trim()
             ?: ""
     }
 
-    fun getText(notification: Notification): String {
+    fun getText(
+        notification: Notification
+    ): String {
+
         return notification.extras
             ?.getCharSequence(Notification.EXTRA_TEXT)
             ?.toString()
+            ?.trim()
             ?: ""
     }
 
-    fun getBigText(notification: Notification): String {
-        return notification.extras
-            ?.getCharSequence(Notification.EXTRA_BIG_TEXT)
-            ?.toString()
-            ?: ""
-    }
+    fun getCategory(
+        notification: Notification
+    ): String {
 
-    fun getSubText(notification: Notification): String {
-        return notification.extras
-            ?.getCharSequence(Notification.EXTRA_SUB_TEXT)
-            ?.toString()
-            ?: ""
-    }
-
-    fun getConversationTitle(notification: Notification): String {
-
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            notification.extras
-                ?.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)
-                ?.toString()
-                ?: ""
-        } else {
-            ""
-        }
-    }
-
-    fun getCategory(notification: Notification): String {
         return notification.category ?: "UNKNOWN"
     }
 
-    fun getChannelId(notification: Notification): String {
+    fun getSenderName(
+        notification: Notification
+    ): String {
 
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notification.channelId ?: ""
-        } else {
-            ""
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+
+            val conversation =
+                notification.extras
+                    ?.getCharSequence(
+                        Notification.EXTRA_CONVERSATION_TITLE
+                    )
+                    ?.toString()
+
+            if (!conversation.isNullOrBlank()) {
+                return conversation.trim()
+            }
         }
+
+        return getTitle(notification)
     }
 
-    fun sanitize(value: String?): String {
+    fun sanitize(
+        value: String?
+    ): String {
 
         return value
             ?.replace("\n", " ")
             ?.replace("\r", " ")
             ?.replace(",", " ")
+            ?.replace("\"", "")
             ?.trim()
             ?: ""
     }
 
-    fun normalizePackage(packageName: String): String {
+    fun normalizePackage(
+        packageName: String
+    ): String {
 
         return packageName
-            .lowercase()
             .trim()
+            .lowercase()
     }
 
-    fun isMessagingNotification(category: String): Boolean {
+    fun isMessagingApp(
+        category: String
+    ): Boolean {
 
         return category == Notification.CATEGORY_MESSAGE
     }
 
-    fun isCallNotification(category: String): Boolean {
+    fun isCallNotification(
+        category: String
+    ): Boolean {
 
         return category == Notification.CATEGORY_CALL
     }
 
-    fun isAlarmNotification(category: String): Boolean {
-
-        return category == Notification.CATEGORY_ALARM
-    }
-
-    fun isEmailNotification(category: String): Boolean {
+    fun isEmailNotification(
+        category: String
+    ): Boolean {
 
         return category == Notification.CATEGORY_EMAIL
     }
 
-    fun isEventNotification(category: String): Boolean {
+    fun isAlarmNotification(
+        category: String
+    ): Boolean {
 
-        return category == Notification.CATEGORY_EVENT
+        return category == Notification.CATEGORY_ALARM
     }
 
-    fun isReminderNotification(category: String): Boolean {
+    fun isReminderNotification(
+        category: String
+    ): Boolean {
 
         return category == Notification.CATEGORY_REMINDER
+    }
+
+    fun isEventNotification(
+        category: String
+    ): Boolean {
+
+        return category == Notification.CATEGORY_EVENT
     }
 }

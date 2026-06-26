@@ -7,34 +7,34 @@ import android.os.Build
 
 object AppInfoUtil {
 
-    data class AppInfoData(
+    data class AppInfo(
+
         val appName: String,
+
         val packageName: String,
+
         val versionName: String,
+
         val versionCode: Long,
-        val installTime: Long,
-        val updateTime: Long,
-        val isSystemApp: Boolean,
-        val category: String
+
+        val isSystemApp: Boolean
+
     )
 
-    fun getAppInfo(
+    fun collect(
         context: Context,
         packageName: String
-    ): AppInfoData {
+    ): AppInfo {
 
         val pm = context.packageManager
 
         return try {
 
-            val appInfo = pm.getApplicationInfo(packageName, 0)
-            val packageInfo = pm.getPackageInfo(packageName, 0)
+            val applicationInfo =
+                pm.getApplicationInfo(packageName, 0)
 
-            val appName =
-                pm.getApplicationLabel(appInfo).toString()
-
-            val versionName =
-                packageInfo.versionName ?: ""
+            val packageInfo =
+                pm.getPackageInfo(packageName, 0)
 
             val versionCode =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
@@ -42,54 +42,39 @@ object AppInfoUtil {
                 else
                     packageInfo.versionCode.toLong()
 
-            val installTime =
-                packageInfo.firstInstallTime
+            AppInfo(
 
-            val updateTime =
-                packageInfo.lastUpdateTime
+                appName =
+                    pm.getApplicationLabel(applicationInfo)
+                        .toString(),
 
-            val isSystem =
-                (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-
-            val category =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    when (appInfo.category) {
-                        ApplicationInfo.CATEGORY_AUDIO -> "Audio"
-                        ApplicationInfo.CATEGORY_GAME -> "Game"
-                        ApplicationInfo.CATEGORY_IMAGE -> "Image"
-                        ApplicationInfo.CATEGORY_MAPS -> "Maps"
-                        ApplicationInfo.CATEGORY_NEWS -> "News"
-                        ApplicationInfo.CATEGORY_PRODUCTIVITY -> "Productivity"
-                        ApplicationInfo.CATEGORY_SOCIAL -> "Social"
-                        ApplicationInfo.CATEGORY_VIDEO -> "Video"
-                        else -> "Other"
-                    }
-                } else {
-                    "Unknown"
-                }
-
-            AppInfoData(
-                appName = appName,
                 packageName = packageName,
-                versionName = versionName,
+
+                versionName =
+                    packageInfo.versionName ?: "",
+
                 versionCode = versionCode,
-                installTime = installTime,
-                updateTime = updateTime,
-                isSystemApp = isSystem,
-                category = category
+
+                isSystemApp =
+                    (applicationInfo.flags and
+                            ApplicationInfo.FLAG_SYSTEM) != 0
+
             )
 
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (_: PackageManager.NameNotFoundException) {
 
-            AppInfoData(
+            AppInfo(
+
                 appName = packageName,
+
                 packageName = packageName,
+
                 versionName = "",
+
                 versionCode = 0,
-                installTime = 0L,
-                updateTime = 0L,
-                isSystemApp = false,
-                category = "Unknown"
+
+                isSystemApp = false
+
             )
         }
     }

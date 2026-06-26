@@ -1,11 +1,14 @@
 package com.niraj.notificationdatacollector.collector
 
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
 import android.service.notification.StatusBarNotification
+import com.niraj.notificationdatacollector.ai.NotificationFrequencyEngine
+import com.niraj.notificationdatacollector.data.ContactProfileRepository
 import com.niraj.notificationdatacollector.model.NotificationEntity
+import com.niraj.notificationdatacollector.utils.AppInfoUtil
+import com.niraj.notificationdatacollector.utils.ContactMatcher
 import com.niraj.notificationdatacollector.utils.DeviceInfoUtil
+import com.niraj.notificationdatacollector.utils.ForegroundAppUtil
 import com.niraj.notificationdatacollector.utils.NotificationUtils
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -13,143 +16,169 @@ import java.util.Locale
 
 object NotificationCollector {
 
-    fun collect(
+    suspend fun collect(
         context: Context,
-        sbn: StatusBarNotification
+        sbn: StatusBarNotification,
+        contactRepository: ContactProfileRepository
     ): NotificationEntity {
 
         val notification = sbn.notification
-        val device = DeviceInfoUtil.collect(context)
-        val pm = context.packageManager
 
-        val packageName = sbn.packageName
+        // ==========================================
+        // Application Information
+        // ==========================================
 
-        var appName = packageName
-        var versionName = ""
-        var versionCode = 0L
-        var isSystemApp = false
+        val appInfo = AppInfoUtil.collect(
+            context,
+            sbn.packageName
+        )
 
-        try {
+        // ==========================================
+        // Device Information
+        // ==========================================
 
-            val appInfo = pm.getApplicationInfo(packageName, 0)
+        val deviceInfo = DeviceInfoUtil.collect(
+            context
+        )
 
-            appName = pm.getApplicationLabel(appInfo).toString()
+        // ==========================================
+        // Notification Information
+        // ==========================================
 
-            val packageInfo = pm.getPackageInfo(packageName, 0)
+        val title = NotificationUtils.sanitize(
+            NotificationUtils.getTitle(notification)
+        )
 
-            versionName = packageInfo.versionName ?: ""
+        val text = NotificationUtils.sanitize(
+            NotificationUtils.getText(notification)
+        )
 
-            versionCode =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-                    packageInfo.longVersionCode
-                else
-                    packageInfo.versionCode.toLong()
+        val senderName = NotificationUtils.sanitize(
+            NotificationUtils.getSenderName(notification)
+        )
 
-            isSystemApp =
-                (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+        val category = NotificationUtils.getCategory(
+            notification
+        )
 
-        } catch (_: PackageManager.NameNotFoundException) {
-        }
+        // ==========================================
+        // Contact Matching
+        // ==========================================
+
+        val contact = ContactMatcher(
+            contactRepository
+        ).match(
+            senderName = senderName
+        )
+
+        // ==========================================
+        // Notification Frequency
+        // ==========================================
+
+        NotificationFrequencyEngine.increment(
+            appInfo.packageName
+        )
+
+        val frequency =
+            NotificationFrequencyEngine.getFrequency(
+                appInfo.packageName
+            )
+
+        // ==========================================
+        // Time Information
+        // ==========================================
 
         val now = Date()
 
-        val timestamp = System.currentTimeMillis()
+        val timestamp =
+            System.currentTimeMillis()
+
+        val dayOfWeek =
+            SimpleDateFormat(
+                "EEEE",
+                Locale.getDefault()
+            ).format(now)
+
+        val hour =
+            SimpleDateFormat(
+                "HH",
+                Locale.getDefault()
+            ).format(now).toInt()
+
+        // ==========================================
+        // Foreground Application
+        // ==========================================
+
+        val foregroundApp =
+            ForegroundAppUtil.getForegroundApp(
+                context
+            )
+
+        // ==========================================
+        // Create Dataset Row
+        // ==========================================
 
         return NotificationEntity(
 
-            timestampMillis = timestamp,
+            notificationKey = sbn.key,
 
-            formattedTime = SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss",
-                Locale.getDefault()
-            ).format(now),
+            userId = "USER_001",
 
-            date = SimpleDateFormat(
-                "yyyy-MM-dd",
-                Locale.getDefault()
-            ).format(now),
+            appName = appInfo.appName,
 
-            dayOfWeek = SimpleDateFormat(
-                "EEEE",
-                Locale.getDefault()
-            ).format(now),
+            packageName = appInfo.packageName,
 
-            month = SimpleDateFormat(
-                "MMMM",
-                Locale.getDefault()
-            ).format(now),
+            notificationCategory = category,
 
-            year = SimpleDateFormat("yyyy", Locale.getDefault()).format(now).toInt(),
-            hour = SimpleDateFormat("HH", Locale.getDefault()).format(now).toInt(),
-            minute = SimpleDateFormat("mm", Locale.getDefault()).format(now).toInt(),
-            second = SimpleDateFormat("ss", Locale.getDefault()).format(now).toInt(),
+            notificationTitle = title,
 
-            appName = appName,
-            packageName = packageName,
-            versionName = versionName,
-            versionCode = versionCode,
-            isSystemApp = isSystemApp,
+            notificationText = text,
 
-            title = NotificationUtils.sanitize(
-                NotificationUtils.getTitle(notification)
-            ),
+            senderName = senderName,
 
-            text = NotificationUtils.sanitize(
-                NotificationUtils.getText(notification)
-            ),
+            senderId = senderName,
 
-            bigText = NotificationUtils.sanitize(
-                NotificationUtils.getBigText(notification)
-            ),
+            senderType = contact.senderType,
 
-            subText = NotificationUtils.sanitize(
-                NotificationUtils.getSubText(notification)
-            ),
+            favoriteContact = contact.favoriteContact,
 
-            conversationTitle = NotificationUtils.sanitize(
-                NotificationUtils.getConversationTitle(notification)
-            ),
+            notificationFrequency = frequency,
 
-            category = NotificationUtils.getCategory(notification),
+            timestamp = timestamp,
 
-            channelId = NotificationUtils.getChannelId(notification),
+            dayOfWeek = dayOfWeek,
 
-            priority = notification.priority,
+            hourOfDay = hour,
 
-            visibility = notification.visibility,
+            screenOn = deviceInfo.screenOn,
 
-            isOngoing = sbn.isOngoing,
+            phoneLocked = deviceInfo.phoneLocked,
 
-            isClearable = sbn.isClearable,
+            batteryLevel = deviceInfo.batteryLevel,
 
-            notificationNumber = notification.number,
+            charging = deviceInfo.charging,
 
-            postTime = sbn.postTime,
+            internetStatus = deviceInfo.internetStatus,
 
-            screenOn = device.screenOn,
-            screenOrientation = device.screenOrientation,
+            doNotDisturb = deviceInfo.doNotDisturb,
 
-            batteryLevel = device.batteryLevel,
-            charging = device.charging,
-            batterySaver = device.batterySaver,
+            foregroundApp = foregroundApp,
 
-            ringerMode = device.ringerMode,
+            userActivity = "UNKNOWN",
 
-            mediaVolume = device.mediaVolume,
-            notificationVolume = device.notificationVolume,
-            alarmVolume = device.alarmVolume,
+            opened = false,
 
-            internetAvailable = device.internetAvailable,
-            wifiConnected = device.wifiConnected,
-            mobileDataConnected = device.mobileDataConnected,
-            connectionType = device.connectionType,
+            dismissed = false,
 
-            priorityLabel = "",
-            userAction = "",
-            responseTime = 0L,
-            wasOpened = false,
-            wasDismissed = false,
-            notes = ""
+            timeToOpen = -1L,
+
+            responseTime = -1L,
+
+            priorityLabel = "UNKNOWN",
+
+            priorityClass = -1,
+
+            predictionConfidence = 0f
         )
     }
 }

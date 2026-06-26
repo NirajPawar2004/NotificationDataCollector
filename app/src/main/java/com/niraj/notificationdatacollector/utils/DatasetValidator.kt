@@ -15,8 +15,16 @@ object DatasetValidator {
 
         val errors = mutableListOf<String>()
 
-        if (notification.timestampMillis <= 0L) {
+        if (notification.notificationId <= 0L) {
+            errors.add("Invalid notification id")
+        }
+
+        if (notification.timestamp <= 0L) {
             errors.add("Invalid timestamp")
+        }
+
+        if (notification.userId.isBlank()) {
+            errors.add("User ID missing")
         }
 
         if (notification.appName.isBlank()) {
@@ -27,48 +35,47 @@ object DatasetValidator {
             errors.add("Package name missing")
         }
 
-        if (notification.formattedTime.isBlank()) {
-            errors.add("Formatted time missing")
+        if (notification.notificationTitle.isBlank()) {
+            errors.add("Notification title missing")
         }
 
-        if (notification.date.isBlank()) {
-            errors.add("Date missing")
+        if (notification.notificationCategory.isBlank()) {
+            errors.add("Notification category missing")
         }
 
         if (notification.dayOfWeek.isBlank()) {
             errors.add("Day of week missing")
         }
 
-        if (notification.month.isBlank()) {
-            errors.add("Month missing")
-        }
-
-        if (notification.year < 2020) {
-            errors.add("Invalid year")
-        }
-
-        if (notification.hour !in 0..23) {
+        if (notification.hourOfDay !in 0..23) {
             errors.add("Invalid hour")
-        }
-
-        if (notification.minute !in 0..59) {
-            errors.add("Invalid minute")
-        }
-
-        if (notification.second !in 0..59) {
-            errors.add("Invalid second")
         }
 
         if (notification.batteryLevel !in 0..100) {
             errors.add("Invalid battery level")
         }
 
-        if (notification.priority !in -2..2) {
-            errors.add("Unexpected Android priority")
+        if (notification.notificationFrequency < 0) {
+            errors.add("Invalid notification frequency")
         }
 
         if (notification.responseTime < 0) {
             errors.add("Negative response time")
+        }
+
+        if (notification.timeToOpen < 0) {
+            errors.add("Negative time to open")
+        }
+
+        if (
+            notification.priorityLabel !in
+            listOf("HIGH", "MEDIUM", "LOW", "UNKNOWN")
+        ) {
+            errors.add("Invalid priority label")
+        }
+
+        if (notification.predictionConfidence !in 0.0..1.0) {
+            errors.add("Prediction confidence must be between 0 and 1")
         }
 
         return ValidationResult(
@@ -109,7 +116,9 @@ object DatasetValidator {
     ): List<NotificationEntity> {
 
         return notifications.filter {
+
             validate(it).valid
+
         }
     }
 
@@ -118,7 +127,9 @@ object DatasetValidator {
     ): List<NotificationEntity> {
 
         return notifications.filterNot {
+
             validate(it).valid
+
         }
     }
 
@@ -130,18 +141,22 @@ object DatasetValidator {
         var completed = 0
 
         fun check(value: Boolean) {
+
             total++
-            if (value) completed++
+
+            if (value)
+                completed++
         }
 
+        check(notification.userId.isNotBlank())
         check(notification.appName.isNotBlank())
         check(notification.packageName.isNotBlank())
-        check(notification.title?.isNotBlank() == true)
-        check(notification.text?.isNotBlank() == true)
-        check(notification.category?.isNotBlank() == true)
-        check(notification.channelId?.isNotBlank() == true)
-        check(notification.formattedTime.isNotBlank())
-        check(notification.date.isNotBlank())
+        check(notification.notificationTitle.isNotBlank())
+        check(notification.notificationText.isNotBlank())
+        check(notification.notificationCategory.isNotBlank())
+        check(notification.senderName.isNotBlank())
+        check(notification.senderType.isNotBlank())
+        check(notification.dayOfWeek.isNotBlank())
         check(notification.priorityLabel.isNotBlank())
 
         return (completed * 100) / total

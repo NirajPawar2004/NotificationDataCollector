@@ -6,126 +6,103 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "notifications")
 data class NotificationEntity(
 
-    // =========================
+    // ==========================================
     // Primary Key
-    // =========================
+    // ==========================================
 
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    val notificationId: Long = 0,
 
-    // =========================
-    // Time Information
-    // =========================
+    // Android Notification Key
+    val notificationKey: String,
 
-    val timestampMillis: Long,
+    // ==========================================
+    // User Information
+    // ==========================================
 
-    val formattedTime: String,
+    val userId: String = "USER_001",
 
-    val date: String,
-
-    val dayOfWeek: String,
-
-    val month: String,
-
-    val year: Int,
-
-    val hour: Int,
-
-    val minute: Int,
-
-    val second: Int,
-
-    // =========================
+    // ==========================================
     // Application Information
-    // =========================
+    // ==========================================
 
     val appName: String,
 
     val packageName: String,
 
-    val versionName: String,
-
-    val versionCode: Long,
-
-    val isSystemApp: Boolean,
-
-    // =========================
+    // ==========================================
     // Notification Information
-    // =========================
+    // ==========================================
 
-    val title: String?,
+    val notificationCategory: String,
 
-    val text: String?,
+    val notificationTitle: String,
 
-    val bigText: String?,
+    val notificationText: String,
 
-    val subText: String?,
+    val senderName: String,
 
-    val conversationTitle: String?,
+    val senderId: String,
 
-    val category: String?,
+    val senderType: String,
 
-    val channelId: String?,
+    val favoriteContact: Boolean,
 
-    val priority: Int,
+    val notificationFrequency: Int,
 
-    val visibility: Int,
+    // ==========================================
+    // Time Information
+    // ==========================================
 
-    val isOngoing: Boolean,
+    val timestamp: Long,
 
-    val isClearable: Boolean,
+    val dayOfWeek: String,
 
-    val notificationNumber: Int,
+    val hourOfDay: Int,
 
-    val postTime: Long,
-
-    // =========================
-    // Device Information
-    // =========================
+    // ==========================================
+    // Device Context
+    // ==========================================
 
     val screenOn: Boolean,
 
-    val screenOrientation: String,
+    val phoneLocked: Boolean,
 
     val batteryLevel: Int,
 
     val charging: Boolean,
 
-    val batterySaver: Boolean,
+    val internetStatus: Boolean,
 
-    val ringerMode: String,
+    val doNotDisturb: Boolean,
 
-    val mediaVolume: Int,
+    // ==========================================
+    // User Context
+    // ==========================================
 
-    val notificationVolume: Int,
+    val foregroundApp: String,
 
-    val alarmVolume: Int,
+    val userActivity: String,
 
-    // =========================
-    // Network Information
-    // =========================
+    // ==========================================
+    // User Behaviour
+    // ==========================================
 
-    val internetAvailable: Boolean,
+    val opened: Boolean = false,
 
-    val wifiConnected: Boolean,
+    val dismissed: Boolean = false,
 
-    val mobileDataConnected: Boolean,
+    val timeToOpen: Long = -1L,
 
-    val connectionType: String,
+    val responseTime: Long = -1L,
 
-    // =========================
-    // AI Training Fields
-    // =========================
+    // ==========================================
+    // AI Output
+    // ==========================================
 
-    val priorityLabel: String = "",
+    val priorityLabel: String = "UNKNOWN",
 
-    val userAction: String = "",
+    val priorityClass: Int = -1,
 
-    val responseTime: Long = 0L,
-
-    val wasOpened: Boolean = false,
-
-    val wasDismissed: Boolean = false,
-
-    val notes: String = ""
+    val predictionConfidence: Float = 0f
 )

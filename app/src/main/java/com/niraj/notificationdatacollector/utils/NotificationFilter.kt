@@ -30,7 +30,7 @@ object NotificationFilter {
     ): List<NotificationEntity> {
 
         return notifications.filter {
-            it.category.equals(category, true)
+            it.notificationCategory.equals(category, true)
         }
     }
 
@@ -44,13 +44,13 @@ object NotificationFilter {
         }
     }
 
-    fun byDate(
+    fun byDayOfWeek(
         notifications: List<NotificationEntity>,
-        date: String
+        day: String
     ): List<NotificationEntity> {
 
         return notifications.filter {
-            it.date == date
+            it.dayOfWeek.equals(day, true)
         }
     }
 
@@ -60,7 +60,7 @@ object NotificationFilter {
     ): List<NotificationEntity> {
 
         return notifications.filter {
-            it.hour == hour
+            it.hourOfDay == hour
         }
     }
 
@@ -69,7 +69,7 @@ object NotificationFilter {
     ): List<NotificationEntity> {
 
         return notifications.filter {
-            it.wasOpened
+            it.opened
         }
     }
 
@@ -78,25 +78,25 @@ object NotificationFilter {
     ): List<NotificationEntity> {
 
         return notifications.filter {
-            it.wasDismissed
+            it.dismissed
         }
     }
 
-    fun ongoingOnly(
+    fun favoriteContactsOnly(
         notifications: List<NotificationEntity>
     ): List<NotificationEntity> {
 
         return notifications.filter {
-            it.isOngoing
+            it.favoriteContact
         }
     }
 
-    fun clearableOnly(
+    fun doNotDisturbOnly(
         notifications: List<NotificationEntity>
     ): List<NotificationEntity> {
 
         return notifications.filter {
-            it.isClearable
+            it.doNotDisturb
         }
     }
 
@@ -128,10 +128,15 @@ object NotificationFilter {
 
         return notifications.filter {
 
-            (it.appName ?: "").lowercase().contains(q) ||
-                    (it.packageName ?: "").lowercase().contains(q) ||
-                    (it.title ?: "").lowercase().contains(q) ||
-                    (it.text ?: "").lowercase().contains(q)
+            it.appName.lowercase().contains(q) ||
+
+                    it.packageName.lowercase().contains(q) ||
+
+                    it.notificationTitle.lowercase().contains(q) ||
+
+                    it.notificationText.lowercase().contains(q) ||
+
+                    it.senderName.lowercase().contains(q)
         }
     }
 
@@ -140,7 +145,7 @@ object NotificationFilter {
     ): List<NotificationEntity> {
 
         return notifications.sortedByDescending {
-            it.timestampMillis
+            it.timestamp
         }
     }
 
@@ -149,7 +154,7 @@ object NotificationFilter {
     ): List<NotificationEntity> {
 
         return notifications.sortedBy {
-            it.timestampMillis
+            it.timestamp
         }
     }
 
@@ -158,7 +163,26 @@ object NotificationFilter {
     ): List<NotificationEntity> {
 
         return notifications.sortedByDescending {
-            it.priority
+
+            when (it.priorityLabel.uppercase()) {
+
+                "HIGH" -> 3
+
+                "MEDIUM" -> 2
+
+                "LOW" -> 1
+
+                else -> 0
+            }
+        }
+    }
+
+    fun sortByConfidence(
+        notifications: List<NotificationEntity>
+    ): List<NotificationEntity> {
+
+        return notifications.sortedByDescending {
+            it.predictionConfidence
         }
     }
 }

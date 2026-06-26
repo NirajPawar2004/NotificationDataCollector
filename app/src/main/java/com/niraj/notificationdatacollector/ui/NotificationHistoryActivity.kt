@@ -1,6 +1,7 @@
 package com.niraj.notificationdatacollector.ui
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,6 +13,10 @@ import kotlinx.coroutines.launch
 
 class NotificationHistoryActivity : AppCompatActivity() {
 
+    companion object {
+        private const val TAG = "NotificationHistory"
+    }
+
     private lateinit var repository: NotificationRepository
 
     private lateinit var recyclerView: RecyclerView
@@ -21,21 +26,36 @@ class NotificationHistoryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_notification_history)
-
-        recyclerView = findViewById(R.id.recyclerNotifications)
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
-
-        adapter = NotificationHistoryAdapter()
-
-        recyclerView.adapter = adapter
-
-        repository = NotificationRepository(
-            DatabaseProvider
-                .getDatabase(this)
-                .notificationDao()
+        setContentView(
+            R.layout.activity_notification_history
         )
+
+        recyclerView =
+            findViewById(R.id.recyclerNotifications)
+
+        recyclerView.layoutManager =
+            LinearLayoutManager(this)
+
+        adapter =
+            NotificationHistoryAdapter()
+
+        recyclerView.adapter =
+            adapter
+
+        repository =
+            NotificationRepository(
+
+                DatabaseProvider
+                    .getDatabase(this)
+                    .notificationDao()
+
+            )
+
+        loadNotifications()
+    }
+
+    override fun onResume() {
+        super.onResume()
 
         loadNotifications()
     }
@@ -44,9 +64,28 @@ class NotificationHistoryActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
 
-            val list = repository.getAll()
+            try {
 
-            adapter.submitList(list)
+                val notifications =
+                    repository.getAll()
+
+                adapter.submitList(
+                    notifications
+                )
+
+                Log.d(
+                    TAG,
+                    "Loaded ${notifications.size} notifications"
+                )
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    TAG,
+                    "Failed to load notifications",
+                    e
+                )
+            }
         }
     }
 }

@@ -5,41 +5,53 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.niraj.notificationdatacollector.data.NotificationRepository
 import com.niraj.notificationdatacollector.model.NotificationEntity
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class NotificationViewModel(
     private val repository: NotificationRepository
 ) : ViewModel() {
 
-    val notifications: StateFlow<List<NotificationEntity>> =
-        repository.allNotifications.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    private val _notifications =
+        MutableStateFlow<List<NotificationEntity>>(emptyList())
+
+    val notifications: StateFlow<List<NotificationEntity>>
+        get() = _notifications
+
+    init {
+        refresh()
+    }
+
+    fun refresh() {
+
+        viewModelScope.launch {
+
+            _notifications.value =
+                repository.getAll()
+
+        }
+    }
 
     fun insertNotification(
         notification: NotificationEntity
     ) {
-        viewModelScope.launch {
-            repository.insert(notification)
-        }
-    }
 
-    fun insertNotifications(
-        notifications: List<NotificationEntity>
-    ) {
         viewModelScope.launch {
-            repository.insertAll(notifications)
+
+            repository.insert(notification)
+
+            refresh()
         }
     }
 
     fun deleteAllNotifications() {
+
         viewModelScope.launch {
+
             repository.deleteAll()
+
+            refresh()
         }
     }
 }
@@ -53,10 +65,19 @@ class NotificationViewModelFactory(
         modelClass: Class<T>
     ): T {
 
-        if (modelClass.isAssignableFrom(NotificationViewModel::class.java)) {
-            return NotificationViewModel(repository) as T
+        if (
+            modelClass.isAssignableFrom(
+                NotificationViewModel::class.java
+            )
+        ) {
+
+            return NotificationViewModel(
+                repository
+            ) as T
         }
 
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException(
+            "Unknown ViewModel class"
+        )
     }
 }

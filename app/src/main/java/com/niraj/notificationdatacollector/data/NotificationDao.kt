@@ -4,81 +4,75 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.niraj.notificationdatacollector.model.NotificationEntity
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NotificationDao {
 
-    // ==========================================
-    // Insert
-    // ==========================================
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertNotification(
+    suspend fun insert(
+        notification: NotificationEntity
+    ): Long
+
+    @Update
+    suspend fun update(
         notification: NotificationEntity
     )
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertNotifications(
-        notifications: List<NotificationEntity>
+    @Query(
+        """
+        SELECT *
+        FROM notifications
+        ORDER BY timestamp DESC
+        """
     )
+    suspend fun getAll(): List<NotificationEntity>
 
-    // ==========================================
-    // Live Data
-    // ==========================================
-
-    @Query("SELECT * FROM notifications ORDER BY timestampMillis DESC")
-    fun observeNotifications(): Flow<List<NotificationEntity>>
-
-    // ==========================================
-    // Get All
-    // ==========================================
-
-    @Query("SELECT * FROM notifications ORDER BY timestampMillis DESC")
-    suspend fun getAllNotifications(): List<NotificationEntity>
-
-    @Query("SELECT * FROM notifications WHERE id = :id LIMIT 1")
-    suspend fun getNotificationById(
+    @Query(
+        """
+        SELECT *
+        FROM notifications
+        WHERE notificationId = :id
+        LIMIT 1
+        """
+    )
+    suspend fun getById(
         id: Long
     ): NotificationEntity?
 
-    // ==========================================
-    // Statistics
-    // ==========================================
+    @Query(
+        """
+        SELECT COUNT(*)
+        FROM notifications
+        """
+    )
+    suspend fun getCount(): Int
 
-    @Query("SELECT COUNT(*) FROM notifications")
-    suspend fun getNotificationCount(): Int
-
-    @Query("SELECT COUNT(DISTINCT packageName) FROM notifications")
-    suspend fun getUniqueAppCount(): Int
+    @Query(
+        """
+        SELECT COUNT(DISTINCT packageName)
+        FROM notifications
+        """
+    )
+    suspend fun getUniqueApps(): Int
 
     @Query(
         """
         SELECT COUNT(*)
         FROM notifications
-        WHERE date = :today
+        WHERE date(timestamp / 1000, 'unixepoch') =
+              date(:timestamp / 1000, 'unixepoch')
         """
     )
-    suspend fun getTodayNotificationCount(
-        today: String
+    suspend fun getTodayCount(
+        timestamp: Long
     ): Int
 
     @Query(
         """
-        SELECT COUNT(*)
-        FROM notifications
-        WHERE packageName = :packageName
+        DELETE FROM notifications
         """
     )
-    suspend fun getNotificationCountForApp(
-        packageName: String
-    ): Int
-
-    // ==========================================
-    // Delete
-    // ==========================================
-
-    @Query("DELETE FROM notifications")
-    suspend fun deleteAllNotifications()
+    suspend fun deleteAll()
 }

@@ -22,28 +22,9 @@ class MainActivity : ComponentActivity() {
 
         requestNotificationPermission()
 
-        if (!isNotificationServiceEnabled()) {
+        requestNotificationListenerPermission()
 
-            startActivity(
-                Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-            )
-
-        } else {
-
-            openDashboard()
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        if (isNotificationServiceEnabled()) {
-
-            openDashboard()
-        }
-    }
-
-    private fun openDashboard() {
+        requestUsageAccessPermission()
 
         startActivity(
             Intent(
@@ -65,19 +46,35 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun isNotificationServiceEnabled(): Boolean {
+    private fun requestNotificationListenerPermission() {
 
         val enabledListeners =
             Settings.Secure.getString(
                 contentResolver,
                 "enabled_notification_listeners"
-            ) ?: return false
+            ) ?: ""
 
-        return enabledListeners.contains(
-            ComponentName(
-                this,
-                com.niraj.notificationdatacollector.service.NotificationListenerService::class.java
-            ).flattenToString()
+        val componentName = ComponentName(
+            this,
+            com.niraj.notificationdatacollector.service.NotificationListenerService::class.java
+        )
+
+        if (!enabledListeners.contains(componentName.flattenToString())) {
+
+            startActivity(
+                Intent(
+                    Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
+                )
+            )
+        }
+    }
+
+    private fun requestUsageAccessPermission() {
+
+        startActivity(
+            Intent(
+                Settings.ACTION_USAGE_ACCESS_SETTINGS
+            )
         )
     }
 }

@@ -6,15 +6,17 @@ import androidx.room.Room
 object DatabaseProvider {
 
     @Volatile
-    private var INSTANCE: NotificationDatabase? = null
+    private var INSTANCE: AppDatabase? = null
 
-    fun getDatabase(context: Context): NotificationDatabase {
+    fun getDatabase(
+        context: Context
+    ): AppDatabase {
 
         return INSTANCE ?: synchronized(this) {
 
             val instance = Room.databaseBuilder(
                 context.applicationContext,
-                NotificationDatabase::class.java,
+                AppDatabase::class.java,
                 "notification_database"
             )
                 .fallbackToDestructiveMigration()

@@ -1,6 +1,7 @@
 package com.niraj.notificationdatacollector.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -11,6 +12,10 @@ import com.niraj.notificationdatacollector.utils.DatasetStatistics
 import kotlinx.coroutines.launch
 
 class StatisticsActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "StatisticsActivity"
+    }
 
     private lateinit var repository: NotificationRepository
 
@@ -44,32 +49,68 @@ class StatisticsActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
 
-            val notifications = repository.getAll()
+            try {
 
-            txtTotal.text =
-                DatasetStatistics.totalNotifications(notifications).toString()
+                val notifications =
+                    repository.getAll()
 
-            txtUniqueApps.text =
-                DatasetStatistics.uniqueApps(notifications).toString()
+                txtTotal.text =
+                    DatasetStatistics
+                        .totalNotifications(
+                            notifications
+                        )
+                        .toString()
 
-            txtAverage.text =
-                String.format(
-                    "%.2f",
-                    DatasetStatistics.averageNotificationsPerDay(notifications)
+                txtUniqueApps.text =
+                    DatasetStatistics
+                        .uniqueApps(
+                            notifications
+                        )
+                        .toString()
+
+                txtAverage.text =
+                    String.format(
+
+                        "%.2f",
+
+                        DatasetStatistics
+                            .averageNotificationsPerDay(
+                                notifications
+                            )
+
+                    )
+
+                txtTopApps.text =
+                    DatasetStatistics
+                        .topApps(
+                            notifications
+                        )
+                        .joinToString("\n") {
+
+                            "${it.first} : ${it.second}"
+
+                        }
+
+                txtCategory.text =
+                    DatasetStatistics
+                        .categoryDistribution(
+                            notifications
+                        )
+                        .entries
+                        .joinToString("\n") {
+
+                            "${it.key} : ${it.value}"
+
+                        }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    TAG,
+                    "Failed to load statistics",
+                    e
                 )
-
-            txtTopApps.text =
-                DatasetStatistics.topApps(notifications)
-                    .joinToString("\n") {
-                        "${it.first} : ${it.second}"
-                    }
-
-            txtCategory.text =
-                DatasetStatistics.categoryDistribution(notifications)
-                    .entries
-                    .joinToString("\n") {
-                        "${it.key} : ${it.value}"
-                    }
+            }
         }
     }
 }

@@ -15,6 +15,10 @@ import kotlinx.coroutines.launch
 
 class CsvExportActivity : AppCompatActivity() {
 
+    companion object {
+        private const val TAG = "CsvExportActivity"
+    }
+
     private lateinit var repository: NotificationRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,48 +32,57 @@ class CsvExportActivity : AppCompatActivity() {
                 .notificationDao()
         )
 
-        val exportButton =
+        val btnExport =
             findViewById<Button>(R.id.btnExport)
 
-        exportButton.setOnClickListener {
+        btnExport.setOnClickListener {
 
-            lifecycleScope.launch {
+            exportDataset()
+        }
+    }
 
-                try {
+    private fun exportDataset() {
 
-                    Log.d("EXPORT", "CSV Export Started")
+        lifecycleScope.launch {
 
-                    val uri: Uri =
-                        ExportCsvHelper(
-                            this@CsvExportActivity,
-                            repository
-                        ).export()
+            try {
 
-                    Log.d(
-                        "EXPORT",
-                        "CSV Export Success : $uri"
-                    )
+                Log.d(
+                    TAG,
+                    "Starting CSV Export..."
+                )
 
-                    Toast.makeText(
+                val uri: Uri =
+                    ExportCsvHelper(
                         this@CsvExportActivity,
-                        "CSV exported successfully.\nSaved in Downloads/NotificationDataset",
-                        Toast.LENGTH_LONG
-                    ).show()
+                        repository
+                    ).export()
 
-                } catch (e: Exception) {
+                Log.d(
+                    TAG,
+                    "CSV Export Success : $uri"
+                )
 
-                    Log.e(
-                        "EXPORT",
-                        "CSV Export Failed",
-                        e
-                    )
+                Toast.makeText(
+                    this@CsvExportActivity,
+                    "Dataset exported successfully.",
+                    Toast.LENGTH_LONG
+                ).show()
 
-                    Toast.makeText(
-                        this@CsvExportActivity,
-                        e.localizedMessage ?: "CSV Export Failed",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+            } catch (e: Exception) {
+
+                Log.e(
+                    TAG,
+                    "CSV Export Failed",
+                    e
+                )
+
+                Toast.makeText(
+                    this@CsvExportActivity,
+                    e.localizedMessage
+                        ?: "CSV Export Failed",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }

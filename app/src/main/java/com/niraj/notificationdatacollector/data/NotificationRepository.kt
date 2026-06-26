@@ -1,58 +1,56 @@
 package com.niraj.notificationdatacollector.data
 
 import com.niraj.notificationdatacollector.model.NotificationEntity
-import kotlinx.coroutines.flow.Flow
 
 class NotificationRepository(
-    private val notificationDao: NotificationDao
+    private val dao: NotificationDao
 ) {
-
-    val allNotifications: Flow<List<NotificationEntity>> =
-        notificationDao.observeNotifications()
 
     suspend fun insert(
         notification: NotificationEntity
-    ) {
-        notificationDao.insertNotification(notification)
+    ): Long {
+
+        return dao.insert(notification)
     }
 
-    suspend fun insertAll(
-        notifications: List<NotificationEntity>
+    suspend fun update(
+        notification: NotificationEntity
     ) {
-        notificationDao.insertNotifications(notifications)
+
+        dao.update(notification)
     }
 
     suspend fun getAll(): List<NotificationEntity> {
-        return notificationDao.getAllNotifications()
+
+        return dao.getAll()
     }
 
     suspend fun getById(
         id: Long
     ): NotificationEntity? {
-        return notificationDao.getNotificationById(id)
+
+        return dao.getById(id)
     }
 
     suspend fun getCount(): Int {
-        return notificationDao.getNotificationCount()
-    }
 
-    suspend fun getTodayCount(
-        today: String
-    ): Int {
-        return notificationDao.getTodayNotificationCount(today)
-    }
-
-    suspend fun getAppCount(
-        packageName: String
-    ): Int {
-        return notificationDao.getNotificationCountForApp(packageName)
+        return dao.getCount()
     }
 
     suspend fun getUniqueApps(): Int {
-        return notificationDao.getUniqueAppCount()
+
+        return dao.getUniqueApps()
+    }
+
+    suspend fun getTodayCount(
+        timestamp: Long
+    ): Int {
+
+        return dao.getTodayCount(timestamp)
     }
 
     suspend fun deleteAll() {
-        notificationDao.deleteAllNotifications()
+
+        dao.deleteAll()
     }
 }
