@@ -1,3 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NotificationDataCollector</string>
+
+    <!-- Application -->
+
+    <string name="app_name">Intelligent Notification AI</string>
+
+    <string name="app_version">Version 3.1</string>
+
+    <string name="app_subtitle">Smart Notification Dataset Collector</string>
+
+    <!-- Home -->
+
+    <string name="dashboard">Dashboard</string>
+
+    <string name="history">History</string>
+
+    <string name="analytics">Analytics</string>
+
+    <string name="settings">Settings</string>
+
+    <string name="about">About</string>
+
+    <string name="export">Export Dataset</string>
+
+    <!-- Dashboard -->
+
+    <string name="total_notifications">Total Notifications</string>
+
+    <string name="today_notifications">Today's Notifications</string>
+
+    <string name="unique_apps">Applications</string>
+
+    <string name="high_priority">High Priority</string>
+
+    <string name="recent_notifications">Recent Notifications</string>
+
+    <string name="dataset_statistics">Dataset Statistics</string>
+
+    <string name="last_export">Last Export</string>
+
+    <!-- Export -->
+
+    <string name="export_csv">Export CSV</string>
+
+    <string name="export_json">Export JSON</string>
+
+    <string name="share_dataset">Share Dataset</string>
+
+    <!-- Notification -->
+
+    <string name="notification_history">Notification History</string>
+
+    <string name="notification_details">Notification Details</string>
+
+    <string name="priority">Priority</string>
+
+    <string name="category">Category</string>
+
+    <string name="search_notifications">Search Notifications</string>
+
+    <!-- Statistics -->
+
+    <string name="top_apps">Top Applications</string>
+
+    <string name="hourly_distribution">Hourly Distribution</string>
+
+    <string name="daily_distribution">Daily Distribution</string>
+
+    <string name="priority_distribution">Priority Distribution</string>
+
+    <string name="category_distribution">Category Distribution</string>
+
+    <!-- Settings -->
+
+    <string name="permissions">Permissions</string>
+
+    <string name="dark_mode">Dark Mode</string>
+
+    <string name="auto_export">Auto Export</string>
+
+    <string name="dataset_location">Dataset Location</string>
+
+    <string name="clear_database">Clear Database</string>
+
+    <!-- Common -->
+
+    <string name="loading">Loading...</string>
+
+    <string name="refresh">Refresh</string>
+
+    <string name="save">Save</string>
+
+    <string name="cancel">Cancel</string>
+
+    <string name="delete">Delete</string>
+
+    <string name="close">Close</string>
+
+    <string name="ok">OK</string>
+
+    <string name="yes">Yes</string>
+
+    <string name="no">No</string>
+
+    <string name="empty">No Data Available</string>
+
 </resources>

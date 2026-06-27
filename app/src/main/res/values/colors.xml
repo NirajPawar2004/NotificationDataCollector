@@ -1,5 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
+    <!-- Primary -->
+    <color name="primary">#6750A4</color>
+    <color name="primary_dark">#4F378B</color>
+    <color name="primary_light">#D0BCFF</color>
+
+    <!-- Secondary -->
+    <color name="secondary">#625B71</color>
+    <color name="secondary_light">#CCC2DC</color>
+
+    <!-- Background -->
+    <color name="background">#F8F9FA</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Dark -->
+    <color name="background_dark">#121212</color>
+    <color name="surface_dark">#1E1E1E</color>
+
+    <!-- Text -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#616161</color>
+
+    <color name="text_primary_dark">#FFFFFF</color>
+    <color name="text_secondary_dark">#B0B0B0</color>
+
+    <!-- Status -->
+
+    <color name="success">#4CAF50</color>
+
+    <color name="warning">#FFC107</color>
+
+    <color name="error">#F44336</color>
+
+    <color name="info">#2196F3</color>
+
+    <!-- Priority -->
+
+    <color name="priority_high">#E53935</color>
+
+    <color name="priority_medium">#FB8C00</color>
+
+    <color name="priority_low">#43A047</color>
+
+    <!-- Card -->
+
+    <color name="card_background">#FFFFFF</color>
+
+    <color name="card_background_dark">#242424</color>
+
+    <!-- Divider -->
+
+    <color name="divider">#E0E0E0</color>
+
+    <!-- White -->
+
+    <color name="white">#FFFFFF</color>
+
+    <!-- Black -->
+
+    <color name="black">#000000</color>
+
 </resources>

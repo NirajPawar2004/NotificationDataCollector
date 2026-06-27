@@ -1,80 +1,91 @@
 package com.niraj.notificationdatacollector
 
-import android.Manifest
-import android.content.ComponentName
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
-import androidx.activity.ComponentActivity
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
+import com.google.android.material.appbar.MaterialToolbar
+import com.niraj.notificationdatacollector.ui.CsvExportActivity
 import com.niraj.notificationdatacollector.ui.DashboardActivity
+import com.niraj.notificationdatacollector.ui.NotificationHistoryActivity
+import com.niraj.notificationdatacollector.ui.SettingsActivity
+import com.niraj.notificationdatacollector.ui.StatisticsActivity
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
-    private val notificationPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { }
+    private lateinit var toolbar: MaterialToolbar
+
+    private lateinit var dashboardCard: CardView
+    private lateinit var historyCard: CardView
+    private lateinit var analyticsCard: CardView
+    private lateinit var exportCard: CardView
+    private lateinit var settingsCard: CardView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        requestNotificationPermission()
+        setContentView(R.layout.activity_main)
 
-        requestNotificationListenerPermission()
+        toolbar = findViewById(R.id.toolbar)
 
-        requestUsageAccessPermission()
+        setSupportActionBar(toolbar)
 
-        startActivity(
-            Intent(
-                this,
-                DashboardActivity::class.java
-            )
-        )
+        supportActionBar?.title = getString(R.string.app_name)
 
-        finish()
-    }
+        dashboardCard = findViewById(R.id.cardDashboard)
+        historyCard = findViewById(R.id.cardHistory)
+        analyticsCard = findViewById(R.id.cardAnalytics)
+        exportCard = findViewById(R.id.cardExport)
+        settingsCard = findViewById(R.id.cardSettings)
 
-    private fun requestNotificationPermission() {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-
-            notificationPermissionLauncher.launch(
-                Manifest.permission.POST_NOTIFICATIONS
-            )
-        }
-    }
-
-    private fun requestNotificationListenerPermission() {
-
-        val enabledListeners =
-            Settings.Secure.getString(
-                contentResolver,
-                "enabled_notification_listeners"
-            ) ?: ""
-
-        val componentName = ComponentName(
-            this,
-            com.niraj.notificationdatacollector.service.NotificationListenerService::class.java
-        )
-
-        if (!enabledListeners.contains(componentName.flattenToString())) {
+        dashboardCard.setOnClickListener {
 
             startActivity(
                 Intent(
-                    Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
+                    this,
+                    DashboardActivity::class.java
                 )
             )
         }
-    }
 
-    private fun requestUsageAccessPermission() {
+        historyCard.setOnClickListener {
 
-        startActivity(
-            Intent(
-                Settings.ACTION_USAGE_ACCESS_SETTINGS
+            startActivity(
+                Intent(
+                    this,
+                    NotificationHistoryActivity::class.java
+                )
             )
-        )
+        }
+
+        analyticsCard.setOnClickListener {
+
+            startActivity(
+                Intent(
+                    this,
+                    StatisticsActivity::class.java
+                )
+            )
+        }
+
+        exportCard.setOnClickListener {
+
+            startActivity(
+                Intent(
+                    this,
+                    CsvExportActivity::class.java
+                )
+            )
+        }
+
+        settingsCard.setOnClickListener {
+
+            startActivity(
+                Intent(
+                    this,
+                    SettingsActivity::class.java
+                )
+            )
+        }
     }
 }
